@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request
+from flask import request, render_template
 import logging
 import psycopg2
 import redis
@@ -12,7 +12,7 @@ cache = redis.StrictRedis(host='redis', port=6379)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
 
-
+# postres interface
 def PgFetch(query, method):
 
     # connect to an existing database
@@ -83,3 +83,8 @@ def pat():
     first = request.args.get('first')
     last = request.args.get('last')
     return f'<h2><marquee>Hi {first} {last}, you are doing a great job today!</marquee></h2>'
+
+
+@app.route('/cat')
+def cat():
+    return render_template('cat.html')

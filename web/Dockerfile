@@ -3,11 +3,6 @@ from python
 RUN groupadd flaskgroup && useradd -m -g flaskgroup -s /bin/bash flask
 RUN echo "flask ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# RUN apt-get update -y && apt-get upgrade -y \
-#     apt-get install -y \
-#     libpq-dev \
-#     python-dev
-
 RUN mkdir -p /home/flask/app/web
 WORKDIR /home/flask/app/web
 COPY requirements.txt /home/flask/app/web
