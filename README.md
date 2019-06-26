@@ -1,2 +1,3 @@
-# microservice
-Frankenstein microservice example from blog posts
+# Microservice
+
+Example python backend with postgres & redis. 
