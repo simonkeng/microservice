@@ -42,14 +42,16 @@ def PgFetch(query, method):
 
 
 @app.route('/')
-def hello_world():
+def page_view_counter():
+
     if cache.exists('visitor_count'):
         cache.incr('visitor_count')
         count = (cache.get('visitor_count')).decode('utf-8')
-        update = PgFetch("UPDATE visitors set visitor_count = " +
-                         count + " where site_id = 1;", "POST")
+        update = PgFetch(
+            "UPDATE visitors set visitor_count = " +
+            count + " where site_id = 1;", "POST"
+        )
         print(f'Count value: {count}')
-
     else:
         cache_refresh = PgFetch(
             "SELECT visitor_count FROM visitors where site_id = 1;", "GET")
@@ -60,24 +62,24 @@ def hello_world():
             if err == "'NoneType' object is not subscriptable":
                 count = 0
                 print('Custom exception caught..')
-
         cache.incr('visitor_count')
         count = (cache.get('visitor_count')).decode('utf-8')
         print(f'Count value: {count}')
-    return f'This page has been viewed {count} time(s).'
+    return f'<h1>This page has been viewed {count} time(s).</h1>'
+
 
 @app.route('/resetcounter')
 def resetcounter():
-
+    # reset redis
     cache.delete('visitor_count')
+    # update postgres
     PgFetch("UPDATE visitors set visitor_count = 0 where site_id = 1;", "POST")
+    app.logger.debug("\nRESET VISITOR COUNT\n")
+    return "<h1>Successfully deleted redis and postgres counters</h1>"
 
-    app.logger.debug("RESET VISITOR COUNT..")
-    return "Successfully deleted redis and postgres counters"
 
-
-@app.route('/pat', methods=['POST'])
+@app.route('/pat', methods=['GET', 'POST'])
 def pat():
     first = request.args.get('first')
     last = request.args.get('last')
-    return f'Hi {first} {last}, you are doing a great job today!'
+    return f'<h2><marquee>Hi {first} {last}, you are doing a great job today!</marquee></h2>'

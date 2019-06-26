@@ -4,31 +4,18 @@ services:
  web:
    build: ./web
    restart: always
-
-   # expose port 8000 to other containers, 
-   # not to the host of the machine
    expose:
      - "8000"
-
-   # mount the web directory within the 
-   # container at /home/flask/app/web
    volumes:
      - ./web:/home/flask/app/web
-
-   # will not create this container 
-   # until redis and postgres are up
    depends_on:
      - redis
      - postgres
-
-   # connect redis and postgres
    links:
      - redis
      - postgres
-
    environment:
      FLASK_DEBUG: 1
-
 
  redis:
    image: redis:alpine
@@ -37,37 +24,25 @@ services:
      mode: replicated
      replicas: 3
 
-
  nginx:
    build: nginx/
    restart: always
-
-   # expose port 80 to the host machine
    ports:
      - "80:80"
    deploy:
      mode: replicated
      replicas: 3
-
    depends_on:
      - web
-
 
  postgres:
    restart: always
    image: postgres
-
-   # mount an initialization script 
-   # and the persistent postgresql data volume
    volumes:
      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
      - ./postgres/data:/var/lib/postgresql/data
-
-   # pass postgres environment variables
    environment:
      POSTGRES_PASSWORD: dockerdemo
      POSTGRES_DB: core-app
-
-   # expose port 5432 to other containers
    expose:
      - "5432"
