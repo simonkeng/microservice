@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import request
 import logging
 import psycopg2
 import redis
@@ -7,34 +8,36 @@ import sys
 app = Flask(__name__)
 cache = redis.StrictRedis(host='redis', port=6379)
 
-# Configure Logging
+# flask app logging
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
 
 
 def PgFetch(query, method):
 
-    # Connect to an existing database
+    # connect to an existing database
     conn = psycopg2.connect(
         "host='postgres' dbname='core-app' user='postgres' password='dockerdemo'")
 
-    # Open a cursor to perform database operations
+    # open a cursor to perform database operations
     cur = conn.cursor()
 
-    # Query the database and obtain data as Python objects
+    # query db
     dbquery = cur.execute(query)
 
     if method == 'GET':
         result = cur.fetchone()
+        print(f'GET request result: {result}')
     else:
         result = ""
 
-    # Make the changes to the database persistent
+    # make the changes to the database persistent
     conn.commit()
 
-    # Close communication with the database
     cur.close()
     conn.close()
+
+    print(f'Final result: {result}')
     return result
 
 
@@ -45,19 +48,36 @@ def hello_world():
         count = (cache.get('visitor_count')).decode('utf-8')
         update = PgFetch("UPDATE visitors set visitor_count = " +
                          count + " where site_id = 1;", "POST")
+        print(f'Count value: {count}')
+
     else:
         cache_refresh = PgFetch(
             "SELECT visitor_count FROM visitors where site_id = 1;", "GET")
-        count = int(cache_refresh[0])
-        cache.set('visitor_count', count)
+        try:
+            count = int(cache_refresh[0])
+            cache.set('visitor_count', count)
+        except TypeError as err:
+            if err == "'NoneType' object is not subscriptable":
+                count = 0
+                print('Custom exception caught..')
+
         cache.incr('visitor_count')
         count = (cache.get('visitor_count')).decode('utf-8')
-    return 'Hello Linode!  This page has been viewed %s time(s).' % count
-
+        print(f'Count value: {count}')
+    return f'This page has been viewed {count} time(s).'
 
 @app.route('/resetcounter')
 def resetcounter():
+
     cache.delete('visitor_count')
     PgFetch("UPDATE visitors set visitor_count = 0 where site_id = 1;", "POST")
-    app.logger.debug("reset visitor count")
+
+    app.logger.debug("RESET VISITOR COUNT..")
     return "Successfully deleted redis and postgres counters"
+
+
+@app.route('/pat', methods=['POST'])
+def pat():
+    first = request.args.get('first')
+    last = request.args.get('last')
+    return f'Hi {first} {last}, you are doing a great job today!'
