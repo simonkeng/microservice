@@ -1,6 +1,6 @@
 # Microservice
 
-Example python backend (flask RESTful API) with postgres & redis. 
+Example python backend with postgres & redis. 
 
 Build and deploy:
 
