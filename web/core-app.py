@@ -4,11 +4,11 @@ import logging
 import psycopg2
 import redis
 import sys
+import requests
 
 app = Flask(__name__)
 cache = redis.StrictRedis(host='redis', port=6379)
 
-# flask app logging
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
 
@@ -88,3 +88,10 @@ def pat():
 @app.route('/cat')
 def cat():
     return render_template('cat.html')
+
+
+@app.route('/call_api', methods=['GET'])
+def call_api():
+    r = requests.get('http://api:8001/return_data')
+    print(r.status_code)
+    return f'<h3>Call result {r.text}</h3>'
