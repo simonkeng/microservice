@@ -1,6 +1,6 @@
 version: '3'
-services:
 
+services:
  web:
    build: ./web
    restart: always
@@ -16,6 +16,16 @@ services:
      - postgres
    environment:
      FLASK_DEBUG: 1
+
+ api:
+   build: ./api
+   restart: always
+   expose:
+     - "8001"
+   volumes:
+     - ./api:/home/api
+   links:
+     - web
 
  redis:
    image: redis:alpine
@@ -34,6 +44,7 @@ services:
      replicas: 3
    depends_on:
      - web
+     - api
 
  postgres:
    restart: always
