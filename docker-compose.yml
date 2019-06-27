@@ -44,7 +44,6 @@ services:
      replicas: 3
    depends_on:
      - web
-     - api
 
  postgres:
    restart: always
